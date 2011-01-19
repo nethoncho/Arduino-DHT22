@@ -1,0 +1,19 @@
+  DHT22.cpp - DHT22 sensor library
+  Developed by Ben Adams - 2011
+
+Humidity and Temperature Sensor DHT22 info found at
+http://www.sparkfun.com/products/10167
+
+Version 0.3: 17-Jan-2011 by Ben Adams
+This version reads data
+Needs check sum code added at the end of readData
+
+Version 0.2: 16-Jan-2011 by Ben Adams
+Changed coding style to match other Arduino libraries.
+This version will not read data either!
+
+Version 0.1: 10-Jan-2011 by Ben Adams nethoncho AT gmail.com
+First Version is a skeleton. This version will not read data!
+Code adapted from the following sources:
+The Arduino OneWire lib
+http://sheepdogguides.com/arduino/ar3ne1humDHT11.htm
