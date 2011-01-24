@@ -4,6 +4,10 @@
 Humidity and Temperature Sensor DHT22 info found at
 http://www.sparkfun.com/products/10167
 
+Version 0.4: 24-Jan-2011 by Ben Adams
+Added return code constants to keywords.txt
+Returns DHT_ERROR_CHECKSUM on check sum mismatch 
+
 Version 0.3: 17-Jan-2011 by Ben Adams
 This version reads data
 Needs check sum code added at the end of readData

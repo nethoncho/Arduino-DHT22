@@ -20,6 +20,10 @@
 Humidity and Temperature Sensor DHT22 info found at
 http://www.sparkfun.com/products/10167
 
+Version 0.4: 24-Jan-2011 by Ben Adams
+Added return code constants to keywords.txt
+Returns DHT_ERROR_CHECKSUM on check sum mismatch 
+
 Version 0.3: 17-Jan-2011 by Ben Adams
 This version reads data
 Needs check sum code added at the end of readData
@@ -76,7 +80,7 @@ DHT22_ERROR_t DHT22::readData()
   uint8_t bitTimes[DHT22_DATA_BIT_COUNT];
   int currentHumidity;
   int currentTemperature;
-  uint8_t checkSum;
+  uint8_t checkSum, csPart1, csPart2, csPart3, csPart4;
   unsigned long currentTime;
   int i;
 
@@ -209,9 +213,15 @@ DHT22_ERROR_t DHT22::readData()
     _lastTemperature = float(currentTemperature) / 10.0;
   }
 
-  // TODO: Test the checksum and return DHT_ERROR_CHECKSUM if bad
-
-  return DHT_ERROR_NONE;
+  csPart1 = currentHumidity >> 8;
+  csPart2 = currentHumidity & 0xFF;
+  csPart3 = currentTemperature >> 8;
+  csPart4 = currentTemperature & 0xFF;
+  if(checkSum == ((csPart1 + csPart2 + csPart3 + csPart4) & 0xFF))
+  {
+    return DHT_ERROR_NONE;
+  }
+  return DHT_ERROR_CHECKSUM;
 }
 
 float DHT22::getHumidity()
