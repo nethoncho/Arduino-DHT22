@@ -205,8 +205,8 @@ DHT22_ERROR_t DHT22::readData()
   if(currentTemperature & 0x8000)
   {
    // Below zero, non standard way of encoding negative numbers!
-    currentTemperature &= 0x7FFF;
-    _lastTemperature = (float(currentTemperature) / 10.0) * -1.0;
+   //currentTemperature &= 0x7FFF; -> if we modify currentTemperature after computing checksum, ERROR_CHECKSUM is returned
+    _lastTemperature = (float(currentTemperature & 0x7FFF) / 10.0) * -1.0;
   }
   else
   {
