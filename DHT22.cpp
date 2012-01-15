@@ -20,6 +20,10 @@
 Humidity and Temperature Sensor DHT22 info found at
 http://www.sparkfun.com/products/10167
 
+Version 0.5: 15 Jan 2012 by Craig Ringer
+- Updated to build against Arduino 1.0
+- Made accessors inline in the header so they can be optimized away
+
 Version 0.4: 24-Jan-2011 by Ben Adams
 Added return code constants to keywords.txt
 Returns DHT_ERROR_CHECKSUM on check sum mismatch 
@@ -41,10 +45,10 @@ http://sheepdogguides.com/arduino/ar3ne1humDHT11.htm
 */
 
 #include "DHT22.h"
-#include "pins_arduino.h"
+#include <Arduino.h>
+#include <pins_arduino.h>
 
 extern "C" {
-#include "WConstants.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
@@ -61,7 +65,7 @@ extern "C" {
 
 DHT22::DHT22(uint8_t pin)
 {
-    _bitmask =  digitalPinToBitMask(pin);
+    _bitmask = digitalPinToBitMask(pin);
     _baseReg = portInputRegister(digitalPinToPort(pin));
     _lastReadTime = millis();
     _lastHumidity = DHT22_ERROR_VALUE;
@@ -201,16 +205,17 @@ DHT22_ERROR_t DHT22::readData()
     }
   }
 
-  _lastHumidity = (float(currentHumidity & 0x7FFF) / 10.0);
+  _lastHumidity = currentHumidity & 0x7FFF;
   if(currentTemperature & 0x8000)
   {
-   // Below zero, non standard way of encoding negative numbers!
+    // Below zero, non standard way of encoding negative numbers!
+    // Convert to native negative format.
     currentTemperature &= 0x7FFF;
-    _lastTemperature = (float(currentTemperature) / 10.0) * -1.0;
+    _lastTemperature = -currentTemperature;
   }
   else
   {
-    _lastTemperature = float(currentTemperature) / 10.0;
+    _lastTemperature = currentTemperature;
   }
 
   csPart1 = currentHumidity >> 8;
@@ -222,16 +227,6 @@ DHT22_ERROR_t DHT22::readData()
     return DHT_ERROR_NONE;
   }
   return DHT_ERROR_CHECKSUM;
-}
-
-float DHT22::getHumidity()
-{
-  return _lastHumidity;
-}
-
-float DHT22::getTemperatureC()
-{
-  return _lastTemperature;
 }
 
 //

@@ -1,4 +1,6 @@
 #include <DHT22.h>
+// Only used for sprintf
+#include <stdio.h>
 
 // Data wire is plugged into port 7 on the Arduino
 // Connect a 4.7K resistor between VCC and the data pin (strong pullup)
@@ -17,8 +19,11 @@ void setup(void)
 void loop(void)
 { 
   DHT22_ERROR_t errorCode;
-
+  
+  // The sensor can only be read from every 1-2s, and requires a minimum
+  // 2s warm-up after power-on.
   delay(2000);
+  
   Serial.print("Requesting data...");
   errorCode = myDHT22.readData();
   switch(errorCode)
@@ -29,6 +34,14 @@ void loop(void)
       Serial.print("C ");
       Serial.print(myDHT22.getHumidity());
       Serial.println("%");
+      // Alternately, with integer formatting which is clumsier but more compact to store and
+	  // can be compared reliably for equality:
+	  //	  
+      char buf[128];
+      sprintf(buf, "Integer-only reading: Temperature %hi.%01hi C, Humidity %i.%01i %% RH",
+                   myDHT22.getTemperatureCInt()/10, abs(myDHT22.getTemperatureCInt()%10),
+                   myDHT22.getHumidityInt()/10, myDHT22.getHumidityInt()%10);
+      Serial.println(buf);
       break;
     case DHT_ERROR_CHECKSUM:
       Serial.print("check sum error ");
