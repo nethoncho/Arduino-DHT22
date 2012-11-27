@@ -44,7 +44,6 @@ http://sheepdogguides.com/arduino/ar3ne1humDHT11.htm
 #include "pins_arduino.h"
 
 extern "C" {
-#include "WConstants.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
