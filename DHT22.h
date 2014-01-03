@@ -35,6 +35,7 @@ class DHT22
 #if !defined(DHT22_NO_FLOAT)
     float getHumidity();
     float getTemperatureC();
+    float getTemperatureF();
 #endif
 };
 
@@ -70,6 +71,11 @@ inline float DHT22::getHumidity()
 inline float DHT22::getTemperatureC()
 {
   return float(_lastTemperature)/10;
+}
+
+inline float DHT22::getTemperatureF()
+{
+  return float(_lastTemperature) / 10 * 9 / 5 + 32;
 }
 #endif //DHT22_SUPPORT_FLOAT
 
