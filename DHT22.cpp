@@ -210,7 +210,7 @@ DHT22_ERROR_t DHT22::readData()
   {
     // Below zero, non standard way of encoding negative numbers!
     // Convert to native negative format.
-    _lastTemperature = -currentTemperature & 0x7FFF;
+    _lastTemperature = -(currentTemperature & 0x7FFF);
   }
   else
   {
