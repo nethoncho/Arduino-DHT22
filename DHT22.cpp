@@ -62,21 +62,41 @@ extern "C" {
 
 #define DHT22_DATA_BIT_COUNT (40)
 
-DHT22::DHT22(uint8_t pin)
-{
-    _bitmask = digitalPinToBitMask(pin);
-    _baseReg = portInputRegister(digitalPinToPort(pin));
+DHT22::DHT22() {
+    _bitmask= 0;
+    init();
+}
+
+DHT22::DHT22(uint8_t pin) {
+    setPin(pin);
+}
+
+void DHT22::init() {
     _lastReadTime = millis();
     _lastHumidity = DHT22_ERROR_VALUE;
     _lastTemperature = DHT22_ERROR_VALUE;
 }
 
-//
-// Read the 40 bit data stream from the DHT 22
-// Store the results in private member data to be read by public member functions
-//
-DHT22_ERROR_t DHT22::readData()
-{
+void DHT22::setPin(uint8_t pin) {
+    _bitmask = digitalPinToBitMask(pin);
+    _baseReg = portInputRegister(digitalPinToPort(pin));
+    init();
+}
+
+DHT22_ERROR_t DHT22::readData() {
+  unsigned long currentTime= millis();
+  
+  if(currentTime - _lastReadTime < 2000) {
+    // Caller needs to wait 2 seconds between each call to readData
+    return DHT_ERROR_TOOQUICK;
+  }
+  _lastReadTime = currentTime;
+  
+  return readDataNow();
+}  
+  
+// Read the sensor without checking the last read time
+DHT22_ERROR_t DHT22::readDataNow() {
   uint8_t bitmask = _bitmask;
   volatile uint8_t *reg asm("r30") = _baseReg;
   uint8_t retryCount;
@@ -84,24 +104,16 @@ DHT22_ERROR_t DHT22::readData()
   int currentHumidity;
   int currentTemperature;
   uint8_t checkSum, csPart1, csPart2, csPart3, csPart4;
-  unsigned long currentTime;
   int i;
-
+  
+  if(bitmask==0) return DHT_ERROR_NOT_PRESENT;
   currentHumidity = 0;
   currentTemperature = 0;
   checkSum = 0;
-  currentTime = millis();
   for(i = 0; i < DHT22_DATA_BIT_COUNT; i++)
   {
     bitTimes[i] = 0;
   }
-
-  if(currentTime - _lastReadTime < 2000)
-  {
-    // Caller needs to wait 2 seconds between each call to readData
-    return DHT_ERROR_TOOQUICK;
-  }
-  _lastReadTime = currentTime;
 
   // Pin needs to start HIGH, wait until it is HIGH with a timeout
   cli();

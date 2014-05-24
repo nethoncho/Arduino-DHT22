@@ -20,6 +20,7 @@ typedef enum
 class DHT22
 {
   private:
+    void init();
     uint8_t _bitmask;
     volatile uint8_t *_baseReg;
     unsigned long _lastReadTime;
@@ -27,10 +28,13 @@ class DHT22
     short int _lastTemperature;
 
   public:
+    DHT22();
     DHT22(uint8_t pin);
+    void setPin(uint8_t pin);
     DHT22_ERROR_t readData();
-	short int getHumidityInt();
-	short int getTemperatureCInt();
+    DHT22_ERROR_t readDataNow();
+    short int getHumidityInt();
+    short int getTemperatureCInt();
     void clockReset();
 #if !defined(DHT22_NO_FLOAT)
     float getHumidity();
