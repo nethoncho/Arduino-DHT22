@@ -44,7 +44,7 @@ void loop(void)
       Serial.println(buf);
       break;
     case DHT_ERROR_CHECKSUM:
-      Serial.print("check sum error ");
+      Serial.print("Checksum error ");
       Serial.print(myDHT22.getTemperatureC());
       Serial.print("C ");
       Serial.print(myDHT22.getHumidity());
@@ -66,7 +66,7 @@ void loop(void)
       Serial.println("Data Timeout ");
       break;
     case DHT_ERROR_TOOQUICK:
-      Serial.println("Polled to quick ");
+      Serial.println("Polled too quick ");
       break;
   }
 }
