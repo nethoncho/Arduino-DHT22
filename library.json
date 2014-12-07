@@ -1,0 +1,24 @@
+{
+  "name": "DHT22",
+  "keywords": "sensor, humidity, temperature, dht",
+  "description": "Digital-output relative humidity & temperature sensor/module DHT22",
+  "authors":
+[
+    {
+        "name": "Ben Adams",
+        "email": "nethoncho@gmail.com",
+        "url": "http://nethoncho.com/",
+        "maintainer": true
+    },
+    {
+        "name": "Craig Ringer"
+    }
+],
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/nethoncho/Arduino-DHT22.git"
+  },
+  "frameworks": "arduino",
+  "platforms": "atmelavr"
+}
