@@ -3,7 +3,7 @@
   "keywords": "sensor, humidity, temperature, dht",
   "description": "Digital-output relative humidity & temperature sensor/module DHT22",
   "authors":
-[
+  [
     {
         "name": "Ben Adams",
         "email": "nethoncho@gmail.com",
@@ -13,7 +13,7 @@
     {
         "name": "Craig Ringer"
     }
-],
+  ],
   "repository":
   {
     "type": "git",
