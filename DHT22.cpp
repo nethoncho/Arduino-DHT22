@@ -64,15 +64,16 @@ extern "C" {
 
 DHT22::DHT22() {
     _bitmask= 0;
+    _lastReadTime= 0;
     init();
 }
 
 DHT22::DHT22(uint8_t pin) {
+    _lastReadTime = 0;
     setPin(pin);
 }
 
 void DHT22::init() {
-    _lastReadTime = millis();
     _lastHumidity = DHT22_ERROR_VALUE;
     _lastTemperature = DHT22_ERROR_VALUE;
 }
@@ -86,7 +87,7 @@ void DHT22::setPin(uint8_t pin) {
 DHT22_ERROR_t DHT22::readData() {
   unsigned long currentTime= millis();
   
-  if(currentTime - _lastReadTime < 2000) {
+  if((long)(currentTime - _lastReadTime) < 2000) {
     // Caller needs to wait 2 seconds between each call to readData
     return DHT_ERROR_TOOQUICK;
   }
@@ -205,15 +206,15 @@ DHT22_ERROR_t DHT22::readDataNow() {
   // bitTimes[x] >  11 is a 1
   // Note: the bits are offset by one from the data sheet, not sure why
   for(i = 0; i < 16; i++) {
-    if(bitTimes[i] > 11)
+    if(bitTimes[i] > 25)
       currentHumidity |= (1 << (15 - i));
   }
   for(i = 0; i < 16; i++) {
-    if(bitTimes[i + 16] > 11)
+    if(bitTimes[i + 16] > 25)
       currentTemperature |= (1 << (15 - i));
   }
   for(i = 0; i < 8; i++) {
-    if(bitTimes[i + 32] > 11)
+    if(bitTimes[i + 32] > 25)
       checkSum |= (1 << (7 - i));
   }
 

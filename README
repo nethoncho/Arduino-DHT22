@@ -22,6 +22,7 @@ Fixed the protocol according to https://www.sparkfun.com/datasheets/Sensors/Temp
 Added test sketch to analyse the timing of the sensor
 Added method setPin to change the sensor pin and thus reuse one DHT22 object for reading several sensors
 Added method readDataNow to read a sensor without the 2s time limit.
+Changed detection limit for "1" bits to 50us
 
 Version 0.5: 15-Jan-2012 by Craig Ringer
 Update to support Arduino 1.0
