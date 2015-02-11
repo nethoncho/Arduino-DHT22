@@ -20,6 +20,7 @@ typedef enum
 class DHT22
 {
   private:
+    void init();
     uint8_t _bitmask;
     volatile uint8_t *_baseReg;
     unsigned long _lastReadTime;
@@ -27,10 +28,13 @@ class DHT22
     short int _lastTemperature;
 
   public:
+    DHT22();
     DHT22(uint8_t pin);
+    void setPin(uint8_t pin);
     DHT22_ERROR_t readData();
-	short int getHumidityInt();
-	short int getTemperatureCInt();
+    DHT22_ERROR_t readDataNow();
+    short int getHumidityInt();
+    short int getTemperatureCInt();
     void clockReset();
 #if !defined(DHT22_NO_FLOAT)
     float getHumidity();
@@ -40,9 +44,6 @@ class DHT22
 };
 
 // Report the humidity in .1 percent increments, such that 635 means 63.5% relative humidity
-//
-// Converts from the internal integer format on demand, so you might want
-// to cache the result.
 inline short int DHT22::getHumidityInt()
 {
   return _lastHumidity;
@@ -57,25 +58,26 @@ inline short int DHT22::getTemperatureCInt()
 
 #if !defined(DHT22_NO_FLOAT)
 // Return the percentage relative humidity in decimal form
+// Converts from the internal integer format on demand, so you might want
+// to cache the result.
 inline float DHT22::getHumidity()
 {
-  return float(_lastHumidity)/10;
+  return float(_lastHumidity) * (float)0.1;
 }
 #endif
 
 #if !defined(DHT22_NO_FLOAT)
 // Return the percentage relative humidity in decimal form
-//
 // Converts from the internal integer format on demand, so you might want
 // to cache the result.
 inline float DHT22::getTemperatureC()
 {
-  return float(_lastTemperature)/10;
+  return float(_lastTemperature) * (float)0.1;
 }
 
 inline float DHT22::getTemperatureF()
 {
-  return float(_lastTemperature) / 10 * 9 / 5 + 32;
+  return float(_lastTemperature) * (float)0.1 * 9.0 / 5.0 + 32.0;
 }
 #endif //DHT22_SUPPORT_FLOAT
 
