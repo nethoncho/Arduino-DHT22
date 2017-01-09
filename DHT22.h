@@ -1,5 +1,11 @@
 #ifndef _DHT22_H_
 #define _DHT22_H_
+#if ARDUINO >= 100
+ #include "Arduino.h"
+#else
+ #include "WProgram.h"
+ #include "WConstants.h"
+#endif
 
 #include <inttypes.h>
 
