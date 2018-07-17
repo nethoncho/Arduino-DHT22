@@ -16,7 +16,7 @@ readData	KEYWORD2
 getHumidity	KEYWORD2
 getHumidityInt	KEYWORD2
 getTemperatureC	KEYWORD2
-getTemperatureCInt KEYWORD2
+getTemperatureCInt	KEYWORD2
 clockReset	KEYWORD2
 
 #######################################
