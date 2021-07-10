@@ -45,7 +45,6 @@ http://sheepdogguides.com/arduino/ar3ne1humDHT11.htm
 */
 
 #include "DHT22.h"
-#include <Arduino.h>
 #include <pins_arduino.h>
 
 extern "C" {
@@ -54,11 +53,10 @@ extern "C" {
 #include <avr/pgmspace.h>
 }
 
-#define DIRECT_READ(base, mask)		(((*(base)) & (mask)) ? 1 : 0)
 #define DIRECT_MODE_INPUT(base, mask)	((*(base+1)) &= ~(mask))
 #define DIRECT_MODE_OUTPUT(base, mask)	((*(base+1)) |= (mask))
 #define DIRECT_WRITE_LOW(base, mask)	((*(base+2)) &= ~(mask))
-//#define DIRECT_WRITE_HIGH(base, mask)	((*(base+2)) |= (mask))
+#define DIRECT_WRITE_HIGH(base, mask)	((*(base+2)) |= (mask))
 
 #define DHT22_DATA_BIT_COUNT (40)
 
@@ -95,126 +93,87 @@ DHT22_ERROR_t DHT22::readData() {
   
   return readDataNow();
 }  
+
   
 // Read the sensor without checking the last read time
 DHT22_ERROR_t DHT22::readDataNow() {
-  uint8_t bitmask = _bitmask;
-  volatile uint8_t *reg asm("r30") = _baseReg;
-  uint8_t retryCount;
-  uint8_t bitTimes[DHT22_DATA_BIT_COUNT];
+    volatile uint8_t *reg asm("r30") = _baseReg;
+  bool bitTimes[DHT22_DATA_BIT_COUNT];
   int currentHumidity;
   int currentTemperature;
   uint8_t checkSum, csPart1, csPart2, csPart3, csPart4;
-  int i;
   
-  if(bitmask==0) return DHT_ERROR_NOT_PRESENT;
+  if(_bitmask==0) return DHT_ERROR_NOT_PRESENT;
   currentHumidity = 0;
   currentTemperature = 0;
   checkSum = 0;
-  for(i = 0; i < DHT22_DATA_BIT_COUNT; i++)
-  {
-    bitTimes[i] = 0;
-  }
 
   // Pin needs to start HIGH, wait until it is HIGH with a timeout
   cli();
-  DIRECT_MODE_INPUT(reg, bitmask);
+  DIRECT_WRITE_HIGH(reg, _bitmask);
+  DIRECT_MODE_INPUT(reg, _bitmask);
   sei();
-  retryCount = 0;
-  do
-  {
-    if (retryCount > 125)
-    {
+  if(!levelTime(LOW, 0, 80))      
       return DHT_BUS_HUNG;
-    }
-    retryCount++;
-    delayMicroseconds(2);
-  } while(!DIRECT_READ(reg, bitmask));
+  
   // Send the activate pulse
   cli();
-  DIRECT_WRITE_LOW(reg, bitmask);
-  DIRECT_MODE_OUTPUT(reg, bitmask); // Output Low
+  DIRECT_WRITE_LOW(reg, _bitmask);
+  DIRECT_MODE_OUTPUT(reg, _bitmask); // Output Low
   sei();
-  delayMicroseconds(1100); // 1.1 ms
+  delayMicroseconds(1000); // 1.1 ms
   cli();
-  DIRECT_MODE_INPUT(reg, bitmask);	// Switch back to input so pin can float
+  DIRECT_WRITE_HIGH(reg, _bitmask);
+  DIRECT_MODE_INPUT(reg, _bitmask);	// Switch back to input so pin can float
   sei();
   
-  // Wait for hi level
-  retryCount = 0;
-  do {
-    if (retryCount > 5) 
-      return DHT_BUS_HUNG;
-    retryCount++;
-    delayMicroseconds(2);
-  } while(!DIRECT_READ(reg, bitmask)); // while lo
-
-  // Wait for response
-  retryCount = 0;
-  do {
-    if (retryCount > 25) //(Spec is 20 to 40 us, 25*2 == 50 us)
-      return DHT_ERROR_NOT_PRESENT;
-    retryCount++;
-    delayMicroseconds(2);
-  } while(DIRECT_READ(reg, bitmask)); // while hi
-
+//   Wait for hi level
+    if(!levelTime(LOW, 0, 80))      
+        return DHT_BUS_HUNG;
+ 
+//   Wait for response, should be 40us hi
+    if(!levelTime(HIGH, 0, 60))      
+        return DHT_ERROR_NOT_PRESENT;
+  
   // ACK Pulse lo
-  retryCount = 0;
-  do {
-    if (retryCount > 50) //(Spec is 80 us, 50*2 == 100 us)
+  if(!levelTime(LOW, 50, 90))      
       return DHT_ERROR_ACK_TOO_LONG;
-    retryCount++;
-    delayMicroseconds(2);
-  } while(!DIRECT_READ(reg, bitmask)); // while lo
-
+  
   // ACK Pulse hi
-  retryCount = 0;
-  do {
-    if (retryCount > 50) //(Spec is 80 us, 50*2 == 100 us)
+  if(!levelTime(HIGH, 50, 90))      
       return DHT_ERROR_ACK_TOO_LONG;
-    retryCount++;
-    delayMicroseconds(2);
-  } while(DIRECT_READ(reg, bitmask)); // while hi
-
+  
   // Read the 40 bit data stream
-  for(i = 0; i < DHT22_DATA_BIT_COUNT; i++)
+  for(int i = 0; i < DHT22_DATA_BIT_COUNT; i++)
   {
     // Find the start of the sync pulse
-    retryCount = 0;
-    do {
-      if (retryCount > 35) //(Spec is 50 us, 35*2 == 70 us)
+    if(!levelTime(LOW, 16, 70))      
         return DHT_ERROR_SYNC_TIMEOUT;
-      retryCount++;
-      delayMicroseconds(2);
-    } while(!DIRECT_READ(reg, bitmask)); // while lo
     
     // Measure the width of the data pulse
-    retryCount = 0;
-    do {
-      if (retryCount > 50) //(Spec is 80 us, 50*2 == 100 us)
+    if(!levelTime(HIGH, 0, 100))      
         return DHT_ERROR_DATA_TIMEOUT;
-      retryCount++;
-      delayMicroseconds(2);
-    } while(DIRECT_READ(reg, bitmask)); // while hi
-    bitTimes[i] = retryCount;
+    
+    // Spec: 0 is 26 to 28 us
+    // Spec: 1 is 70 us
+    bitTimes[i] = wrongTiming>40;
   }
-  // Now bitTimes have the number of retries (us *2)
-  // that were needed to find the end of each data bit
-  // Spec: 0 is 26 to 28 us
-  // Spec: 1 is 70 us
-  // bitTimes[x] <= 11 is a 0
-  // bitTimes[x] >  11 is a 1
-  // Note: the bits are offset by one from the data sheet, not sure why
-  for(i = 0; i < 16; i++) {
-    if(bitTimes[i] > 25)
+
+  // EOF Pulse lo
+  if(!levelTime(LOW, 16, 75))      
+      return DHT_ERROR_SYNC_TIMEOUT;
+
+  
+  for(int i = 0; i < 16; i++) {
+    if(bitTimes[i])
       currentHumidity |= (1 << (15 - i));
   }
-  for(i = 0; i < 16; i++) {
-    if(bitTimes[i + 16] > 25)
+  for(int i = 0; i < 16; i++) {
+    if(bitTimes[i + 16])
       currentTemperature |= (1 << (15 - i));
   }
-  for(i = 0; i < 8; i++) {
-    if(bitTimes[i + 32] > 25)
+  for(int i = 0; i < 8; i++) {
+    if(bitTimes[i + 32])
       checkSum |= (1 << (7 - i));
   }
 

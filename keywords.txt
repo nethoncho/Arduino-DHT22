@@ -17,6 +17,7 @@ getHumidity	KEYWORD2
 getHumidityInt	KEYWORD2
 getTemperatureC	KEYWORD2
 getTemperatureCInt KEYWORD2
+getWrongTiming KEYWORD2
 clockReset	KEYWORD2
 
 #######################################
