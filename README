@@ -1,4 +1,7 @@
-  DHT22.cpp - DHT22 sensor library
+This repo has been archived.
+Checkout https://github.com/adafruit/DHT-sensor-library for a maintained code base.
+
+DHT22 sensor library
   Developed by Ben Adams - 2011
 
 Humidity and Temperature Sensor DHT22 info found at
