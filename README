@@ -3,6 +3,7 @@ Checkout https://github.com/adafruit/DHT-sensor-library for a maintained code ba
 
 DHT22 sensor library
   Developed by Ben Adams - 2011
+  Protocol Fix by Jens Geisler - 2014
 
 Humidity and Temperature Sensor DHT22 info found at
   http://www.sparkfun.com/products/10167
@@ -13,6 +14,18 @@ signalling protocol.
 To install this library for use with the Arduino IDE, copy it
 to the `libraries' folder and restart the IDE. For an example of
 how to use it, see File->Examples->DHT22->Serial .
+
+The original library, after sending the sensor read-out initiation signal, waited 20us to 40us on a LOW signal, when it should have been looking for a 20us to 40 us sensor "setup time" HIGH signal. Then the original library expected a 80us HIGH "ACK pulse" when it should have been looking for a 80us LOW "ACK pulse" and a second 80us HIGH "ACK pulse". Thus the original library "saw" an extra pair of low and hi signals which it interpreted as a first invalid data-bit.
+Somehow the original worked quite well for me (and apparently for many others aswell) for a long time. Only on sensors connected via very long (>20m) twisted pair cable I sometimes didn't get a sensors to communicate. Interestingly when this happened it happened right at the first read and continued to persist. But after resetting my arduino a couple of times it started to work again and didn't go bad ever after (until - maybe - the next reset). So, I always thought it had something to do with the line being in a bad state at startup.
+But then I wanted to read six sensors and was not able to get of them working at the same time, no matter how often I resetted. So, I wrote a sketch to see what is going on on the sensor line and found out that the original library must have misinterpreted the spec.
+So, here is a corrected version, in the hope it will prevent others from the frustration I suffered.
+
+Version 0.6: 24-May-2014 by Jens Geisler
+Fixed the protocol according to https://www.sparkfun.com/datasheets/Sensors/Temperature/DHT22.pdf
+Added test sketch to analyse the timing of the sensor
+Added method setPin to change the sensor pin and thus reuse one DHT22 object for reading several sensors
+Added method readDataNow to read a sensor without the 2s time limit.
+Changed detection limit for "1" bits to 50us
 
 Version 0.5: 15-Jan-2012 by Craig Ringer
 Update to support Arduino 1.0
